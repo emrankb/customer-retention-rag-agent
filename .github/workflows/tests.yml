@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run foundation and retrieval contract tests
+      - name: Run offline tests
         run: python -m unittest discover -s tests -v
 
   retrieval-integration:
@@ -31,5 +31,32 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-retrieval.txt
           python -m pip check
-      - name: Check LangChain and FAISS integration
+      - name: Run retrieval integration tests
         run: python -m unittest discover -s tests -v
+
+  interface-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-app.txt
+      - name: Install application dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-app.txt
+          python -m pip check
+      - name: Check imports and create Gradio interface
+        run: |
+          python - <<'PY'
+          from unittest.mock import Mock
+          from customer_retention.interface import create_app
+          app = create_app(customer_db=Mock(), docs_dir="docs",
+                           index_dir="index", generate=Mock())
+          assert app is not None
+          app.close()
+          PY
+          python -m unittest discover -s tests -v

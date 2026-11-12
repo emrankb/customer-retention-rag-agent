@@ -161,3 +161,10 @@ stale policy data. See `docs/startup_checks.md` for details.
 GitHub Actions tests these checks with temporary records and a local index.
 The actual supplied files still need to be checked in the local project
 environment.
+
+## Policy index during chat
+
+The chat app verifies and loads the policy index at startup, then reuses it
+for later questions. The standalone search command still verifies the index
+on each run. If a policy document changes, rebuild the index and restart
+the app. See `docs/index_reuse.md`.

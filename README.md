@@ -115,3 +115,11 @@ These checks cover missing customers, missing policy results, source markers,
 and human-review flags. They do not measure the accuracy of generated answers
 against the original policy documents. See `docs/evaluation.md` for details
 and the remaining manual evaluation work.
+
+## Citation checks
+
+The assistant rejects model responses containing source markers that do not
+match the retrieved passages, even if another citation is valid. Long or
+invalid model responses also produce a fallback message. These checks do not
+prove that the answer's claims are supported by its cited text. See
+`docs/citation_validation.md`.

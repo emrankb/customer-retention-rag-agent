@@ -119,7 +119,7 @@ def answer_question(
     )
     response = generate(make_prompt(question, customer, passages))
     if (not isinstance(response, str) or not response.strip()
-            or len(response) > _MAX_RESPONSE_CHARS or "\\x00" in response):
+            or len(response) > _MAX_RESPONSE_CHARS or "\x00" in response):
         return Answer(
             "The answer generator returned no usable response. Please "
             "consult an authorized bank representative.",
@@ -137,12 +137,6 @@ def answer_question(
             True, (), True,
         )
     used = set(markers)
-    if not used:
-        return Answer(
-            "I cannot verify the generated answer against the cited policy "
-            "excerpts. Please consult an authorized bank representative.",
-            True, (), True,
-        )
     matched = tuple(c for i, c in enumerate(citations, 1) if f"[S{i}]" in used)
     needs_review = bool(_SENSITIVE_REQUEST.search(question))
     answer = response.strip()

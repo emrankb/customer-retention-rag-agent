@@ -104,3 +104,14 @@ records, and separately checks the Gradio installation and FAISS integration.
 These checks do not measure answer quality against the supplied dataset.
 Response evaluation and a review of the final assignment requirements remain
 open tasks.
+
+## Offline answer checks
+
+Run `python -m scripts.evaluate_answers` to exercise six synthetic
+question-answer cases without using a model API key. The report is written to
+`reports/answer_contracts.json` and is excluded from Git.
+
+These checks cover missing customers, missing policy results, source markers,
+and human-review flags. They do not measure the accuracy of generated answers
+against the original policy documents. See `docs/evaluation.md` for details
+and the remaining manual evaluation work.

@@ -205,16 +205,12 @@ def open_index(
     )
 
 
-def search_policies(
-    question: str, docs_dir: str | Path, index_dir: str | Path, *,
-    k: int = 4, embeddings=None, model_name: str = MODEL_NAME,
-) -> list[dict]:
-    """Return ranked policy passages with file and line citations."""
-    if not isinstance(question, str) or not question.strip() or len(question) > 1000 or "\x00" in question:
+def _search_loaded_store(question: str, store, *, k: int) -> list[dict]:
+    if (not isinstance(question, str) or not question.strip()
+            or len(question) > 1000 or "\x00" in question):
         raise ValueError("Search question must contain 1–1000 characters.")
     if not isinstance(k, int) or isinstance(k, bool) or not 1 <= k <= 10:
         raise ValueError("Number of results must be between 1 and 10.")
-    store = open_index(docs_dir, index_dir, embeddings=embeddings, model_name=model_name)
     hits = []
     for doc, distance in store.similarity_search_with_score(question.strip(), k=k):
         score = float(distance)
@@ -229,3 +225,33 @@ def search_policies(
             "distance": score,
         })
     return hits
+
+
+def make_policy_search(
+    docs_dir: str | Path, index_dir: str | Path, *,
+    embeddings=None, model_name: str = MODEL_NAME,
+):
+    """Verify and load the local index once for a running application."""
+    store = open_index(
+        docs_dir, index_dir, embeddings=embeddings, model_name=model_name,
+    )
+
+    def search(question: str, _docs_dir, _index_dir, *, k: int = 4) -> list[dict]:
+        return _search_loaded_store(question, store, k=k)
+
+    return search
+
+
+def search_policies(
+    question: str, docs_dir: str | Path, index_dir: str | Path, *,
+    k: int = 4, embeddings=None, model_name: str = MODEL_NAME,
+) -> list[dict]:
+    """One-off policy search that reloads and verifies the saved index."""
+    # Validate before loading a potentially large embedding model.
+    if (not isinstance(question, str) or not question.strip()
+            or len(question) > 1000 or "\x00" in question):
+        raise ValueError("Search question must contain 1–1000 characters.")
+    if not isinstance(k, int) or isinstance(k, bool) or not 1 <= k <= 10:
+        raise ValueError("Number of results must be between 1 and 10.")
+    store = open_index(docs_dir, index_dir, embeddings=embeddings, model_name=model_name)
+    return _search_loaded_store(question, store, k=k)

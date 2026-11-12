@@ -11,8 +11,7 @@ from pathlib import Path
 from customer_retention.customer_db import CustomerDB
 from customer_retention.interface import create_app
 from customer_retention.model_adapter import create_generator
-from customer_retention.preflight import check_startup
-from customer_retention.retrieval import make_policy_search
+from customer_retention.preflight import prepare_startup
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -29,9 +28,8 @@ def main() -> None:
     if not index_dir.is_dir():
         raise FileNotFoundError("Build the policy index before starting the application.")
 
-    check_startup(ROOT / "data/raw", docs_dir, index_dir)
+    _summary, search = prepare_startup(ROOT / "data/raw", docs_dir, index_dir)
     customer_db = CustomerDB(data_path)
-    search = make_policy_search(docs_dir, index_dir)
     generator = create_generator()
     app = create_app(
         customer_db=customer_db, docs_dir=docs_dir,

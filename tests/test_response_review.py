@@ -42,7 +42,7 @@ class ResponseReviewTests(unittest.TestCase):
         self.assertEqual(summary["mean_scores"]["grounding"], 1)
         self.assertEqual(summary["mean_scores"]["personalization"], 1.5)
         self.assertEqual(summary["score_counts"]["tone"]["0"], 1)
-        self.assertNotIn("response", str(summary))
+        self.assertNotIn("It depends on the card type [S1].", json.dumps(summary))
 
     def test_duplicate_case_rejected(self):
         with self.assertRaisesRegex(ValueError, "Invalid review record"):

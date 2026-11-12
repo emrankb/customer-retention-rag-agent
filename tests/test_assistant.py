@@ -102,6 +102,64 @@ class AssistantTests(unittest.TestCase):
         self.assertNotIn("600", prompt)
         self.assertIn("historical_exited", prompt)
 
+    def test_conflicting_retention_rules_are_flagged_without_raw_credit_score(self):
+        profile = self.db.get_context("42")
+        profile["tenure_years"] = 2
+        profile["credit_score"] = 619
+        passages = [{
+            "source": "retention_policy.txt", "text": "Policy segments depend on tenure or score.",
+            "line_start": 9, "line_end": 12,
+        }]
+        prompt = make_prompt("What can we offer?", profile, passages)
+        self.assertIn("retention_tenure_rule: moderate-value", prompt)
+        self.assertIn("retention_credit_score_rule: low-value", prompt)
+        self.assertIn("overlapping conditions", prompt)
+        self.assertNotIn("619", prompt)
+        self.assertNotIn("credit_score: 619", prompt)
+
+    def test_retention_segment_boundaries(self):
+        passages = [{"source": "retention_policy.txt", "text": "Policy", "line_start": 1, "line_end": 1}]
+        cases = [
+            (0, 649, "low-value", "low-value"),
+            (1, 650, "moderate-value", "moderate-value"),
+            (3, 750, "moderate-value", "moderate-value"),
+            (4, 751, "high-value", "high-value"),
+            (4, 649, "high-value", "low-value"),
+        ]
+        for tenure, score, by_tenure, by_score in cases:
+            with self.subTest(tenure=tenure, score=score):
+                profile = {**self.db.get_context("42"),
+                           "tenure_years": tenure, "credit_score": score}
+                prompt = make_prompt("Retention options?", profile, passages)
+                self.assertIn(f"retention_tenure_rule: {by_tenure}", prompt)
+                self.assertIn(f"retention_credit_score_rule: {by_score}", prompt)
+
+    def test_retention_band_not_sent_without_retention_evidence(self):
+        prompt = make_prompt("Account details?", self.db.get_context("42"), self.hits)
+        self.assertNotIn("retention_credit_score_rule:", prompt)
+
+    def test_retention_rules_missing_credit_score_are_not_assumed(self):
+        profile = {**self.db.get_context("42")}
+        profile.pop("credit_score")
+        passages = [{"source": "retention_policy.txt", "text": "Policy", "line_start": 1, "line_end": 1}]
+        prompt = make_prompt("Retention options?", profile, passages)
+        self.assertIn("retention_segment_status: unknown", prompt)
+
+    def test_retention_offer_question_requires_review(self):
+        self.search.return_value = [{
+            "source": "retention_policy.txt",
+            "line_start": 14, "line_end": 20,
+            "chunk_id": "retention_policy.txt:1",
+            "text": "A retention offer needs approval.",
+        }]
+        answer = answer_question(
+            "What should we offer to retain this customer?", "42",
+            customer_db=self.db, docs_dir="unused", index_dir="unused",
+            generate=self.generate, search=self.search,
+        )
+        self.assertTrue(answer.needs_review)
+        self.assertIn("authorized bank review", answer.text)
+
     def test_bad_question_and_k_rejected(self):
         with self.assertRaises(ValueError):
             self.ask(k=0)

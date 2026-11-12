@@ -56,8 +56,8 @@ The Gradio server listens on `127.0.0.1:7860` by default. Set `RETENTION_PORT` t
 - The source checker validates both CSVs and the six policy files.
 - The retrieval module splits policy documents into passages and stores embeddings in FAISS, retaining file and line references.
 - Startup validates the source files and index, then reuses the loaded index for questions.
-- The assistant combines customer context with retrieved passages and calls the configured model. It checks citation markers and returns a fallback when the response has missing or invalid source references.
-- Gradio shows the response and its sources. Waivers, refunds, eligibility decisions, and retention offers are not approved by the app.
+- A LangChain Runnable chain looks up the customer, retrieves policy passages, and calls the configured model. It checks citation markers and returns a fallback when the response has missing or invalid source references.
+- Gradio maintains chat history for the active customer and displays the response and its sources. Changing customer ID clears the chat. Waivers, refunds, eligibility decisions, and retention offers are not approved by the app.
 
 A correct citation marker does **not** prove that the answer is supported by its source.
 
@@ -87,3 +87,10 @@ This reports source hit rate, mean source recall, and mean reciprocal rank. A re
 The project does not train a new churn prediction model. The historical `Exited` label must not be treated as a predicted churn probability. Policy search and citation-marker validation do not guarantee factual answers or authorize account decisions. End-to-end testing with the supplied private documents and an approved live model, along with a check against the assignment rubric, remains to be completed.
 
 Additional details are in `docs/retrieval.md`, `docs/evaluation.md`, `docs/retrieval_evaluation.md`, `docs/startup_checks.md`, and `docs/index_reuse.md`.
+
+## Assignment coverage
+
+The Runnable chain and customer-specific Gradio chat history are implemented.
+The remaining mandatory evaluation work is assessing grounding, personalization,
+tone, and coherence using reviewed answers from the supplied policy documents.
+See `docs/assignment_checklist.md` for the six-task checklist and limitations.

@@ -39,4 +39,37 @@ The unit tests use small synthetic records and run without the supplied CSVs. Th
 
 `CustomerDB.get_context(customer_id)` returns the profile and optional sentiment label, or `None` for an unknown ID. Financial values are kept as strings with their source precision and no assumed currency. The churn label must not be described as a predicted probability or evidence of a customer's current status. The supplied files do not contain all the payment-history and approval details required to authorize a fee waiver.
 
-Document ingestion, embeddings, the RAG workflow, Gradio, and the final answer evaluation will be added in later milestones. These are not part of the current data-checking code.
+## Policy document search
+
+The retrieval layer reads the six files in `docs/reference/` with LangChain
+`TextLoader`. `RecursiveCharacterTextSplitter` creates overlapping passages and
+keeps the original file and line numbers. The embedding model is
+`sentence-transformers/all-MiniLM-L6-v2`, running locally on CPU; FAISS stores
+its vectors. Customer profiles are looked up directly through `CustomerDB`, not
+added to the policy index.
+
+Install the retrieval packages and build the index after placing the documents
+in `docs/reference/`:
+
+```bash
+.venv/bin/python -m pip install -r requirements-retrieval.txt
+.venv/bin/python scripts/build_policy_index.py
+.venv/bin/python scripts/search_policies.py --query "How can I waive my annual fee?"
+```
+
+The first build downloads the embedding model if it is not already cached.
+The generated index lives under ignored `index/policies/`. Rebuilding requires
+removing the old index directory first; the build command does not overwrite it.
+The loader checks the source files and saved vector metadata before searching.
+See `docs/retrieval.md` for indexing details and how the tests are organized.
+
+Tests run without uploading documents or customer data. The offline test suite
+uses fixed vectors, while a separate integration suite exercises LangChain and
+FAISS when the optional packages are installed:
+
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+The conversational RAG chain, Gradio application, and final response evaluation
+are separate parts of the project and are not yet included here.

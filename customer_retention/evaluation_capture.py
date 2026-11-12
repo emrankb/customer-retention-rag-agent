@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 from typing import Callable
 
-from .rag_chain import make_rag_chain
 
 DIMENSIONS = ("grounding", "personalization", "tone", "coherence")
 _FIELDS = {"id", "customer_id", "question"}
@@ -61,6 +60,8 @@ def capture_responses(
         raise ValueError("No cases provided.")
     if not isinstance(model_name, str) or not model_name.strip():
         raise ValueError("Model name is required.")
+    from .rag_chain import make_rag_chain
+
     captured = []
     evidence = []
     for case in cases:

@@ -149,3 +149,15 @@ using the saved FAISS index. It does not call the chat model. The reviewed
 question set and policy documents are not included in the repository; CI
 checks the scoring formulas with synthetic examples instead. See
 `docs/retrieval_evaluation.md` for the required format and metric limits.
+
+## Startup validation
+
+Before opening Gradio, the application checks that the original customer
+table is valid, the optional sentiment table agrees with it, all six
+reference documents are present, and the saved FAISS index matches those
+documents. It stops on missing or altered inputs instead of continuing with
+stale policy data. See `docs/startup_checks.md` for details.
+
+GitHub Actions tests these checks with temporary records and a local index.
+The actual supplied files still need to be checked in the local project
+environment.

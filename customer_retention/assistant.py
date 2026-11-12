@@ -13,7 +13,9 @@ from typing import Callable
 from .customer_db import CustomerDB
 from .retrieval import search_policies
 
-_CITATION = re.compile(r"\[S([1-5])\]")
+_CITATION = re.compile(r"\[S[0-9]+\]")
+_CITATION_LIKE = re.compile(r"\[S[^\]\r\n]*\]")
+_MAX_RESPONSE_CHARS = 8000
 _SENSITIVE_REQUEST = re.compile(
     r"\b(waiv(?:e|er|ing)|refund|approve|approval|eligible|eligibility|"
     r"guarantee|promise|authorized|authorise|authorize)\b", re.IGNORECASE
@@ -116,20 +118,32 @@ def answer_question(
         for i, p in enumerate(passages, 1)
     )
     response = generate(make_prompt(question, customer, passages))
-    if not isinstance(response, str) or not response.strip():
+    if (not isinstance(response, str) or not response.strip()
+            or len(response) > _MAX_RESPONSE_CHARS or "\\x00" in response):
         return Answer(
             "The answer generator returned no usable response. Please "
             "consult an authorized bank representative.",
             True, (), True,
         )
-    used = set(_CITATION.findall(response))
-    if not used or any(int(i) > len(citations) for i in used):
+    # Reject unknown, noncanonical, and malformed source markers even when a
+    # separate valid marker is present in the same response.
+    markers = _CITATION_LIKE.findall(response)
+    valid_markers = {c["marker"] for c in citations}
+    if (not markers or any(marker not in valid_markers for marker in markers)
+            or len(_CITATION.findall(response)) != len(markers)):
         return Answer(
             "I cannot verify the generated answer against the cited policy "
             "excerpts. Please consult an authorized bank representative.",
             True, (), True,
         )
-    matched = tuple(c for i, c in enumerate(citations, 1) if str(i) in used)
+    used = set(markers)
+    if not used:
+        return Answer(
+            "I cannot verify the generated answer against the cited policy "
+            "excerpts. Please consult an authorized bank representative.",
+            True, (), True,
+        )
+    matched = tuple(c for i, c in enumerate(citations, 1) if f"[S{i}]" in used)
     needs_review = bool(_SENSITIVE_REQUEST.search(question))
     answer = response.strip()
     if needs_review:

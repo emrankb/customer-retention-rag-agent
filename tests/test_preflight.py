@@ -6,9 +6,10 @@ import math
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from customer_retention.customer_db import CUSTOMER_COLUMNS
-from customer_retention.preflight import check_startup
+from customer_retention.preflight import check_startup, prepare_startup
 from customer_retention.source_checks import REFERENCE_FILES
 
 try:
@@ -92,6 +93,21 @@ class PreflightTests(unittest.TestCase):
         self.assertGreaterEqual(result["indexed_passages"], 6)
         self.assertNotIn("Example", repr(result))
         self.assertNotIn("2000.00", repr(result))
+
+    def test_startup_opens_index_once_for_repeated_searches(self):
+        from customer_retention.preflight import open_index as actual_open
+        with patch("customer_retention.preflight.open_index",
+                   wraps=actual_open) as loader:
+            report, search = prepare_startup(
+                self.data, self.docs, self.index, embeddings=self.embeddings,
+                model_name="preflight-test-encoder",
+            )
+            first = search("account fees", self.docs, self.index, k=2)
+            second = search("reward support", self.docs, self.index, k=2)
+        self.assertEqual(loader.call_count, 1)
+        self.assertGreater(report["indexed_passages"], 0)
+        self.assertTrue(first)
+        self.assertTrue(second)
 
     def test_optional_sentiment_file(self):
         self.sentiment.unlink()

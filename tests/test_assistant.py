@@ -67,6 +67,35 @@ class AssistantTests(unittest.TestCase):
         self.generate.return_value = "Policy says yes [S2]."
         self.assertFalse(self.ask().citations)
 
+    def test_valid_multiple_citations(self):
+        self.search.return_value = self.hits + [{
+            "text": "Requests must be submitted through customer service.",
+            "source": "complaints_handling.txt",
+            "line_start": 4, "line_end": 5,
+            "chunk_id": "complaints_handling.txt:1",
+        }]
+        self.generate.return_value = "Two steps are described [S1] [S2]."
+        result = self.ask()
+        self.assertEqual([c["marker"] for c in result.citations], ["[S1]", "[S2]"])
+
+    def test_valid_citation_plus_unknown_marker_rejected(self):
+        self.generate.return_value = "Review required [S1], guaranteed [S99]."
+        result = self.ask()
+        self.assertFalse(result.citations)
+        self.assertNotIn("guaranteed", result.text)
+
+    def test_noncanonical_or_malformed_marker_rejected(self):
+        for marker in ("[S0]", "[S01]", "[Sx]", "[S-1]", "[S 1]"):
+            with self.subTest(marker=marker):
+                self.generate.return_value = f"Review required [S1] {marker}."
+                self.assertFalse(self.ask().citations)
+
+    def test_excessive_or_nul_response_rejected(self):
+        for response in ("Policy [S1]." * 1000, "Policy [S1].\\x00"):
+            with self.subTest(response_length=len(response)):
+                self.generate.return_value = response
+                self.assertFalse(self.ask().citations)
+
     def test_no_private_demographics_in_prompt(self):
         prompt = make_prompt("What is the policy?", self.db.get_context("42"), self.hits)
         self.assertNotIn("DoNotSend", prompt)

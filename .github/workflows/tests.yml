@@ -27,13 +27,15 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: requirements-retrieval.txt
+          cache-dependency-path: |
+            requirements-retrieval.txt
+            requirements-app.txt
       - name: Install retrieval dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements-retrieval.txt
+          python -m pip install -r requirements-retrieval.txt -r requirements-app.txt
           python -m pip check
-      - name: Run retrieval integration tests
+      - name: Run retrieval and full application integration tests
         run: python -m unittest discover -s tests -v
 
   interface-integration:

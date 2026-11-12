@@ -6,12 +6,12 @@ import math
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from customer_retention.assistant import answer_question
 from customer_retention.customer_db import CUSTOMER_COLUMNS, CustomerDB
 from customer_retention.interface import create_app, make_handler
-from customer_retention.retrieval import build_index, search_policies
+from customer_retention.retrieval import build_index, make_policy_search, search_policies
 from customer_retention.source_checks import REFERENCE_FILES
 
 try:
@@ -96,6 +96,7 @@ class AppIntegrationTests(unittest.TestCase):
             )
 
         def run_answer(question, customer_id, **kwargs):
+            kwargs.pop("search", None)
             return answer_question(question, customer_id, search=search, **kwargs)
 
         self.handler = make_handler(
@@ -114,6 +115,23 @@ class AppIntegrationTests(unittest.TestCase):
         self.assertIn("Annual fee waiver requests require staff approval.", prompt)
         self.assertNotIn("Sample", prompt)
         self.assertNotIn("2000.00", prompt)
+
+    def test_running_app_reuses_the_loaded_index(self):
+        search = make_policy_search(
+            self.docs, self.index, embeddings=self.embeddings,
+            model_name="ci-keyword-vectors",
+        )
+        handler = make_handler(
+            customer_db=self.db, docs_dir=self.docs, index_dir=self.index,
+            generate=self.model, search=search,
+        )
+        with patch("customer_retention.retrieval.open_index") as loader:
+            first = handler("42", "How do I request an annual fee waiver?")
+            second = handler("42", "How do I request an annual fee waiver?")
+        self.assertEqual(first, second)
+        self.assertIn("fee_waiver_policy.txt", first)
+        self.assertEqual(self.model.call_count, 2)
+        loader.assert_not_called()
 
     def test_unknown_customer_does_not_call_model(self):
         result = self.handler("999", "How do I request an annual fee waiver?")

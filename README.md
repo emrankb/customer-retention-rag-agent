@@ -134,3 +134,18 @@ index, and Gradio app construction.
 
 This checks whether the components work together without a hosted model.
 It does not measure the quality of responses from an actual LLM.
+
+## Reviewing document retrieval
+
+To measure retrieval against the original policy files, create a reviewed
+JSONL question set with expected source filenames and run:
+
+```bash
+python -m scripts.evaluate_retrieval --cases path/to/reviewed_questions.jsonl
+```
+
+The command reports source hit rate, source recall, and reciprocal rank at k
+using the saved FAISS index. It does not call the chat model. The reviewed
+question set and policy documents are not included in the repository; CI
+checks the scoring formulas with synthetic examples instead. See
+`docs/retrieval_evaluation.md` for the required format and metric limits.

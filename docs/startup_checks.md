@@ -22,3 +22,13 @@ Tests create temporary CSVs and reference documents and build a FAISS index
 with deterministic local vectors. GitHub Actions runs these tests with the
 retrieval packages installed. It cannot verify the privately supplied files
 because those files are deliberately not committed.
+
+## Loaded index lifecycle
+
+The application calls prepare_startup() once and passes its verified search
+callable to the chat interface. This avoids opening the same FAISS index again
+after preflight. check_startup() remains available for commands that only need
+the validation summary.
+
+The index is a snapshot. Stop the app, rebuild the index, and restart after
+changing any policy source. The app does not monitor files for changes.

@@ -132,3 +132,15 @@ command refuses to report incomplete ratings. See
 CI verifies this capture logic using fixed model responses, not a live LLM.
 No grounding, personalization, tone, or coherence score is claimed until
 real responses are recorded and reviewed.
+
+## Retention segment ambiguity
+
+The supplied retention policy can match the same customer to different
+segments through its tenure and credit-score rules. When that policy is
+retrieved, the assistant passes the matching segment signals and an overlap
+warning to the model, without sending the raw credit score. An overlapping
+match is not resolved automatically and does not authorize an offer.
+
+Retention-offer questions are marked for review. The original CSVs do not
+contain the payment history, waiver approvals, and CRM records needed to
+confirm eligibility. See `docs/retention_segments.md`.

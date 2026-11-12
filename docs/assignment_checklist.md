@@ -31,3 +31,13 @@ expected policy passages, actual responses, and reviewer judgments for:
 grounding accuracy, personalization, tone, and coherence. Do not substitute
 synthetic unit-test pass rates for those qualitative measures. The supplied
 private files and API credentials remain outside Git.
+
+
+## Retention policy interpretation
+
+The supplied retention policy (lines 9–12) uses alternative tenure and credit
+score conditions for each segment. A profile can therefore match different
+segments under the two criteria. The assistant sends coarse, conditional
+segment signals rather than the raw score and marks retention-offer questions
+for review. This does not resolve the underlying ambiguity, and no offer
+approval can be inferred from the churn data. See `docs/retention_segments.md`.

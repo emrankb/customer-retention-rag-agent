@@ -22,13 +22,16 @@ def make_handler(
             return "Enter a customer ID."
         if not isinstance(question, str) or not question.strip():
             return "Enter a question."
+        identifier = customer_id.strip()
+        if not identifier.isascii() or not identifier.isdecimal():
+            return "Invalid input: Customer ID must contain only digits."
+        if len(question) > 1000 or "\x00" in question:
+            return "Invalid input: Question must be 1–1000 characters."
         try:
             result = answer(
-                question, customer_id.strip(), customer_db=customer_db,
+                question, identifier, customer_db=customer_db,
                 docs_dir=docs_dir, index_dir=index_dir, generate=generate,
             )
-        except ValueError as exc:
-            return f"Invalid input: {exc}"
         except Exception:
             # Do not show customer data, model output, or internal paths in the UI.
             return "The request could not be completed. Check the application logs."

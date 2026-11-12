@@ -41,6 +41,18 @@ class InterfaceTests(unittest.TestCase):
         self.answer.side_effect = ValueError("Customer ID must contain only digits.")
         self.assertIn("Invalid input", self.handle("abc", "Question"))
 
+    def test_internal_value_error_is_hidden(self):
+        self.answer.side_effect = ValueError("Saved index file changed: secret/path")
+        response = self.handle("42", "Question")
+        self.assertIn("could not be completed", response)
+        self.assertNotIn("secret/path", response)
+
+    def test_invalid_question_is_rejected_before_answer(self):
+        for question in ("Question" * 200, "Hello\x00world"):
+            with self.subTest(length=len(question)):
+                self.assertIn("Invalid input", self.handle("42", question))
+        self.answer.assert_not_called()
+
     def test_internal_error_is_hidden(self):
         self.answer.side_effect = RuntimeError("secret token")
         response = self.handle("42", "Question")

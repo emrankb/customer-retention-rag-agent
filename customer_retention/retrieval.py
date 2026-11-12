@@ -227,6 +227,14 @@ def _search_loaded_store(question: str, store, *, k: int) -> list[dict]:
     return hits
 
 
+def search_loaded_index(store):
+    """Return an answer-workflow search callable using an already opened index."""
+    def search(question: str, _docs_dir, _index_dir, *, k: int = 4) -> list[dict]:
+        return _search_loaded_store(question, store, k=k)
+
+    return search
+
+
 def make_policy_search(
     docs_dir: str | Path, index_dir: str | Path, *,
     embeddings=None, model_name: str = MODEL_NAME,
@@ -235,11 +243,7 @@ def make_policy_search(
     store = open_index(
         docs_dir, index_dir, embeddings=embeddings, model_name=model_name,
     )
-
-    def search(question: str, _docs_dir, _index_dir, *, k: int = 4) -> list[dict]:
-        return _search_loaded_store(question, store, k=k)
-
-    return search
+    return search_loaded_index(store)
 
 
 def search_policies(

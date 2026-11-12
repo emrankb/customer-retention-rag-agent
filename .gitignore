@@ -1,0 +1,24 @@
+# Python and local environment
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.DS_Store
+
+# Customer records, policy inputs, and generated vector indexes
+/data/raw/*
+!/data/raw/.gitkeep
+/docs/reference/*
+!/docs/reference/.gitkeep
+/index/*
+!/index/.gitkeep
+/reports/
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem

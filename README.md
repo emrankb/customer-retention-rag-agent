@@ -110,3 +110,25 @@ The scorer rejects missing ratings. It does not make model calls or grade
 answers automatically. See `docs/response_review.md` for the 0–2 rubric.
 The three assignment sample questions have not yet been scored against live
 model output, so Task 6 is not marked complete.
+
+## Capturing assignment answers
+
+The three questions from the assignment are in
+`evaluation/sample_questions.jsonl`. To capture actual responses and the
+passages retrieved for them, use the local evaluation command after loading
+the approved customer and policy files:
+
+```bash
+.venv/bin/python -m scripts.capture_response_reviews --allow-model-requests
+```
+
+This command requires an API key and deliberately asks for an explicit flag:
+it sends limited customer context and policy excerpts to the configured
+model and may incur API charges. It writes ignored files under `reports/`.
+Ratings remain empty until the responses are reviewed. The review-summary
+command refuses to report incomplete ratings. See
+`docs/capture_evaluation.md`.
+
+CI verifies this capture logic using fixed model responses, not a live LLM.
+No grounding, personalization, tone, or coherence score is claimed until
+real responses are recorded and reviewed.

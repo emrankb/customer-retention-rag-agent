@@ -111,7 +111,7 @@ def create_app(
             "Account decisions require authorized review."
         )
         customer_id = gr.Textbox(label="Customer ID")
-        conversation = gr.Chatbot(label="Conversation", type="messages")
+        conversation = gr.Chatbot(label="Conversation")
         question = gr.Textbox(label="Question", lines=2)
         submit = gr.Button("Send")
         session = gr.State({"customer_id": None, "messages": []})

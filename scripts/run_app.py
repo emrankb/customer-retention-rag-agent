@@ -12,6 +12,7 @@ from customer_retention.customer_db import CustomerDB
 from customer_retention.interface import create_app
 from customer_retention.model_adapter import create_generator
 from customer_retention.preflight import check_startup
+from customer_retention.retrieval import make_policy_search
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,10 +31,11 @@ def main() -> None:
 
     check_startup(ROOT / "data/raw", docs_dir, index_dir)
     customer_db = CustomerDB(data_path)
+    search = make_policy_search(docs_dir, index_dir)
     generator = create_generator()
     app = create_app(
         customer_db=customer_db, docs_dir=docs_dir,
-        index_dir=index_dir, generate=generator,
+        index_dir=index_dir, generate=generator, search=search,
     )
     # Never expose the development server via a public share link.
     app.launch(

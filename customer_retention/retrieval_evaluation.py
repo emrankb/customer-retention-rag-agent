@@ -33,9 +33,9 @@ def load_judgments(path: str | Path) -> list[dict]:
                     or not isinstance(question, str) or not question.strip()
                     or len(question) > 1000 or "\x00" in question
                     or not isinstance(sources, list) or not sources
-                    or len(sources) != len(set(sources))
                     or any(not isinstance(name, str) or name not in REFERENCE_FILES
-                           for name in sources)):
+                           for name in sources)
+                    or len(sources) != len(set(sources))):
                 raise ValueError(f"Invalid evaluation case at line {line_number}.")
             seen.add(case_id)
             cases.append(item)

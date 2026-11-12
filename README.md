@@ -123,3 +123,14 @@ match the retrieved passages, even if another citation is valid. Long or
 invalid model responses also produce a fallback message. These checks do not
 prove that the answer's claims are supported by its cited text. See
 `docs/citation_validation.md`.
+
+## Application integration test
+
+GitHub Actions also runs the customer lookup, local FAISS index, answer
+generator, and interface callback together. The test creates temporary
+customer and policy files and uses fixed keyword embeddings and a fake
+model reply. It checks a cited response, an unknown customer, a damaged
+index, and Gradio app construction.
+
+This checks whether the components work together without a hosted model.
+It does not measure the quality of responses from an actual LLM.

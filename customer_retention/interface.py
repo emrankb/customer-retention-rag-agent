@@ -6,6 +6,7 @@ from typing import Callable
 
 from .assistant import answer_question
 from .customer_db import CustomerDB
+from .retrieval import search_policies
 
 
 def make_handler(
@@ -15,6 +16,7 @@ def make_handler(
     index_dir: str | Path,
     generate: Callable[[str], str],
     answer=answer_question,
+    search=search_policies,
 ):
     """Return a Gradio-compatible callback with no hidden model calls on import."""
     def handle(customer_id: str, question: str) -> str:
@@ -31,6 +33,7 @@ def make_handler(
             result = answer(
                 question, identifier, customer_db=customer_db,
                 docs_dir=docs_dir, index_dir=index_dir, generate=generate,
+                search=search,
             )
         except Exception:
             # Do not show customer data, model output, or internal paths in the UI.
@@ -50,13 +53,14 @@ def create_app(
     docs_dir: str | Path,
     index_dir: str | Path,
     generate: Callable[[str], str],
+    search=search_policies,
 ):
     """Create the UI only when Gradio is installed and explicitly requested."""
     import gradio as gr
 
     handler = make_handler(
         customer_db=customer_db, docs_dir=docs_dir,
-        index_dir=index_dir, generate=generate,
+        index_dir=index_dir, generate=generate, search=search,
     )
     return gr.Interface(
         fn=handler,

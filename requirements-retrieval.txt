@@ -1,0 +1,6 @@
+# LangChain document loader, splitting, embedding, and FAISS search
+langchain-community==0.4.2
+langchain-text-splitters==1.1.3
+langchain-huggingface==1.2.3
+sentence-transformers==6.2.0
+faiss-cpu==1.15.1

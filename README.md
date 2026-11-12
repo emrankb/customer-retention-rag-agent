@@ -71,5 +71,36 @@ FAISS when the optional packages are installed:
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-The conversational RAG chain, Gradio application, and final response evaluation
-are separate parts of the project and are not yet included here.
+## Chat interface
+
+The application combines customer lookup and policy search with a Gradio
+interface. The model adapter uses LangChain and a configured OpenAI model.
+An API key is required to use it, and submitting a question sends a limited
+customer profile and relevant document excerpts to that provider. The service
+can incur charges. Do not use private customer data without authorization.
+
+Install the application packages alongside the retrieval packages:
+
+```bash
+.venv/bin/python -m pip install -r requirements-app.txt
+```
+
+Place the original CSV files and reference documents in the folders above,
+then build the policy index if it does not already exist. Set `OPENAI_API_KEY`
+using the environment's secret management mechanism. Optionally set
+`RETENTION_MODEL` to choose a model and `RETENTION_PORT` for the local port.
+Start the interface from the repository root:
+
+```bash
+.venv/bin/python -m scripts.run_app
+```
+
+The application binds to `127.0.0.1` and does not create a public share URL.
+It is intended for local development, not public deployment. Account approvals,
+fee waivers, and retention offers still require an authorized review.
+
+GitHub Actions runs the offline tests without a model key or real customer
+records, and separately checks the Gradio installation and FAISS integration.
+These checks do not measure answer quality against the supplied dataset.
+Response evaluation and a review of the final assignment requirements remain
+open tasks.

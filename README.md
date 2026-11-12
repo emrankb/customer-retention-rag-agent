@@ -94,3 +94,19 @@ The Runnable chain and customer-specific Gradio chat history are implemented.
 The remaining mandatory evaluation work is assessing grounding, personalization,
 tone, and coherence using reviewed answers from the supplied policy documents.
 See `docs/assignment_checklist.md` for the six-task checklist and limitations.
+
+## Reviewing model responses
+
+Task 6 also requires reviewing grounding, personalization, tone, and
+coherence. Save actual model responses, their source lines, and a reviewer
+score and explanation for each dimension in an ignored local JSONL file.
+Then summarize the completed reviews with:
+
+```bash
+.venv/bin/python -m scripts.summarize_response_reviews --reviews reports/reviews.jsonl
+```
+
+The scorer rejects missing ratings. It does not make model calls or grade
+answers automatically. See `docs/response_review.md` for the 0–2 rubric.
+The three assignment sample questions have not yet been scored against live
+model output, so Task 6 is not marked complete.

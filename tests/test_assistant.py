@@ -91,7 +91,7 @@ class AssistantTests(unittest.TestCase):
                 self.assertFalse(self.ask().citations)
 
     def test_excessive_or_nul_response_rejected(self):
-        for response in ("Policy [S1]." * 1000, "Policy [S1].\\x00"):
+        for response in ("Policy [S1]." * 1000, "Policy [S1].\x00"):
             with self.subTest(response_length=len(response)):
                 self.generate.return_value = response
                 self.assertFalse(self.ask().citations)

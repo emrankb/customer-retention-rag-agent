@@ -10,7 +10,7 @@ as of the Runnable/chat-history milestone; it is not a grading result.
 | 3. CustomerDB and get_context; optional sentiment | `customer_db.py`, both supplied CSV formats, sentiment support | Implemented |
 | 4. LangChain Runnable RAG chain and configured ChatOpenAI/ChatOllama | `rag_chain.py` combines lookup, retrieval, and answer generation using RunnableLambda; `model_adapter.py` provides ChatOpenAI | Implemented; live API calls not performed in CI |
 | 5. Gradio chat, citations, context errors, history | `interface.py` with session-scoped messages and customer-ID reset; citation/source display | Implemented; browser interaction needs local confirmation |
-| 6. Sample queries and quality evaluation (grounding, personalization, tone, coherence) | Offline contract tests and retrieval scoring exist, but no reviewed live-response quality scores | Incomplete |
+| 6. Sample queries and quality evaluation (grounding, personalization, tone, coherence) | Response review scoring script and rubric, offline contract tests, and retrieval scoring | Review tooling implemented; live model response scoring still incomplete |
 
 The task list mentions Model Context and Tooling Protocols in the course title,
 but no task explicitly asks for an MCP server. It should not be added merely

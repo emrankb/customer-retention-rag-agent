@@ -74,6 +74,43 @@ class EvaluationCaptureTests(unittest.TestCase):
         self.assertEqual(search.call_count, 1)
         self.assertEqual(model.call_count, 1)
         self.assertEqual(db.get_context.call_count, 1)
+        self.assertEqual(reviews[0]["model"], "offline-test")
+        self.assertEqual(evidence[0]["answer_origin"], "model")
+        self.assertEqual(evidence[0]["model_calls"], 1)
+        self.assertEqual(evidence[0]["configured_model"], "offline-test")
+
+
+    def test_policy_guard_is_not_mislabeled_as_model_output(self):
+        try:
+            import langchain_core  # noqa: F401
+        except ImportError:
+            self.skipTest("Install LangChain Core for capture integration")
+        db = Mock()
+        db.get_context.return_value = {
+            "customer_id": "42", "tenure_years": 2, "credit_score": 619,
+            "num_products": 1, "has_credit_card": True,
+            "is_active_member": True, "historical_exited": False,
+            "sentiment_label": "Negative",
+        }
+        search = Mock(return_value=[
+            {"source": "retention_policy.txt",
+             "line_start": 14, "line_end": 19,
+             "chunk_id": "retention_policy.txt:1",
+             "text": "3. Retention Offers\nModerate-value: waiver; Low-value: counselling."},
+        ])
+        model = Mock(side_effect=AssertionError("Guard should not invoke model"))
+        reviews, evidence = capture_responses(
+            [{"id": "offer", "customer_id": "42",
+              "question": "What should we offer to retain this customer?"}],
+            customer_db=db, docs_dir="docs", index_dir="index",
+            generate=model, search=search, model_name="configured-test-model",
+        )
+        self.assertEqual(reviews[0]["model"], "no_model_call")
+        self.assertEqual(evidence[0]["answer_origin"], "application_fallback_or_guard")
+        self.assertEqual(evidence[0]["model_calls"], 0)
+        self.assertEqual(evidence[0]["configured_model"], "configured-test-model")
+        self.assertIn("cannot determine one segment", reviews[0]["response"])
+        model.assert_not_called()
 
     def test_summary_rejects_unreviewed_capture(self):
         from customer_retention.response_review import summarize_reviews

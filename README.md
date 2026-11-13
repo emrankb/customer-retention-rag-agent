@@ -158,3 +158,12 @@ exclude loyalty-tier benefits. Missing product evidence produces a fallback.
 These safeguards are **not** a general claim-level citation verifier. Run
 the three evaluation questions again and review the actual results before
 claiming improved model accuracy. See `docs/grounded_response_guards.md`.
+
+## Evaluation answer provenance
+
+Captured evidence now records whether the language model was actually
+called. `answer_origin`, `model_calls`, and `configured_model` are kept
+in the ignored evidence file. The corresponding review entry uses
+`no_model_call` when the application answered through a policy guard or
+fallback. Scores for those responses must not be described as scores for
+the configured language model. See `docs/capture_evaluation.md`.

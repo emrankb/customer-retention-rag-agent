@@ -72,15 +72,24 @@ def capture_responses(
             passages.extend(hits)
             return hits
 
+        model_calls = 0
+
+        def recording_generate(prompt):
+            nonlocal model_calls
+            model_calls += 1
+            return generate(prompt)
+
         chain = make_rag_chain(
             customer_db=customer_db, docs_dir=docs_dir,
-            index_dir=index_dir, generate=generate, search=recording_search,
+            index_dir=index_dir, generate=recording_generate,
+            search=recording_search,
         )
         result = chain.invoke({
             "question": case["question"],
             "customer_id": case["customer_id"],
             "history": [],
         })
+        answer_origin = "model" if model_calls else "application_fallback_or_guard"
         sources = [
             {
                 "source": c["source"],
@@ -94,7 +103,7 @@ def capture_responses(
             "question": case["question"],
             "response": result.text,
             "sources": sources,
-            "model": model_name,
+            "model": model_name if model_calls else "no_model_call",
             "ratings": {dimension: None for dimension in DIMENSIONS},
             "notes": {dimension: "" for dimension in DIMENSIONS},
         })
@@ -112,5 +121,8 @@ def capture_responses(
             ],
             "customer_found": result.customer_found,
             "needs_review": result.needs_review,
+            "answer_origin": answer_origin,
+            "model_calls": model_calls,
+            "configured_model": model_name,
         })
     return captured, evidence

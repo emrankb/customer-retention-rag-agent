@@ -44,3 +44,19 @@ a fake model. It does not call ChatOpenAI or claim a real-model quality score.
 
 The evaluation is not complete until reviewed model responses exist and the
 four required criteria have been scored.
+
+## Model calls versus application guards
+
+The capture records whether the configured model was actually called.
+The private evidence JSONL contains `answer_origin`, `model_calls`, and
+`configured_model` for each case. A response produced by a deterministic
+safety guard or fallback is labeled `no_model_call` in the review file,
+even if a language model was configured in the application.
+
+After the grounded-response-guards milestone, the three assignment questions
+may all be handled by application policy guards with zero model calls. Those
+answers can be reviewed for grounding, personalization, tone, and coherence
+as **application responses**, but must never be presented as new LLM quality
+scores. To measure LLM quality independently, a distinct reviewed test set
+that reaches the model is necessary. This metadata does not classify which
+specific guard or fallback ran; only whether generation was invoked.

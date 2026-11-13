@@ -56,8 +56,9 @@ def conflicting_retention_answer(question: str, customer: dict, passages: list[d
             "but an offer must not be selected solely from conflicting indicators."
         )
     sentences.append(
-        "Please ask an authorized retention representative to confirm the "
-        "applicable segment, review the customer's concern and required "
+        "Any retention option requires verification and authorized bank "
+        "review. Please ask an authorized retention representative to confirm "
+        "the applicable segment, review the customer's concern and required "
         "records, and decide whether any option is appropriate."
     )
     markers = tuple(

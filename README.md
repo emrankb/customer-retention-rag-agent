@@ -144,3 +144,17 @@ match is not resolved automatically and does not authorize an offer.
 Retention-offer questions are marked for review. The original CSVs do not
 contain the payment history, waiver approvals, and CRM records needed to
 confirm eligibility. See `docs/retention_segments.md`.
+
+## Observed response quality fixes
+
+The first real-model Task 6 review found two problems: conflicting retention
+signals led to a specific proposed offer, and a Gold/Platinum comparison used
+citations that did not support all claims. The application now uses
+source-backed responses for these narrowly scoped cases. Conflicting
+retention signals trigger an authorized-review response without an offer;
+Gold/Platinum comparisons quote separate product-summary sections and
+exclude loyalty-tier benefits. Missing product evidence produces a fallback.
+
+These safeguards are **not** a general claim-level citation verifier. Run
+the three evaluation questions again and review the actual results before
+claiming improved model accuracy. See `docs/grounded_response_guards.md`.

@@ -169,6 +169,18 @@ def answer_question(
         }
         for i, p in enumerate(passages, 1)
     )
+    # Use direct source-backed answers for ambiguous offers and product
+    # comparisons; valid markers alone do not establish claim-level support.
+    from .policy_guards import conflicting_retention_answer, gold_platinum_comparison
+    guarded = conflicting_retention_answer(question, customer, passages)
+    if guarded is not None:
+        text, matched_citations = guarded
+        return Answer(text, True, matched_citations, True)
+    guarded = gold_platinum_comparison(question, passages)
+    if guarded is not None:
+        text, matched_citations = guarded
+        return Answer(text, True, matched_citations, not bool(matched_citations))
+
     response = generate(make_prompt(question, customer, passages, history=history))
     if (not isinstance(response, str) or not response.strip()
             or len(response) > _MAX_RESPONSE_CHARS or "\x00" in response):
